@@ -1,15 +1,31 @@
-Source: template-repository
-Section: unknown
+Source: python-exceptiongroup
+Section: python
 Priority: optional
-Maintainer: Tsic404 <liuheng@deepin.org>
-Build-Depends: debhelper (>= 11)
-Standards-Version: 4.1.3
-Homepage: https://github.com/deepin-community/template-repository
-#Vcs-Browser: https://salsa.debian.org/debian/deepin-community-template-repository
-#Vcs-Git: https://salsa.debian.org/debian/deepin-community-template-repository.git
+Maintainer: Debian Python Team <team+python@tracker.debian.org>
+Uploaders:
+ Agathe Porte <debian@microjoe.org>,
+Build-Depends:
+ debhelper-compat (= 13),
+ dh-python,
+ dh-sequence-python3,
+ pybuild-plugin-pyproject,
+ python3-all,
+ python3-flit-scm,
+ python3-pytest <!nocheck>,
+Standards-Version: 4.6.2
+Testsuite: autopkgtest-pkg-pybuild
+Vcs-Git: https://salsa.debian.org/python-team/packages/python-exceptiongroup.git
+Vcs-Browser: https://salsa.debian.org/python-team/packages/python-exceptiongroup
+Homepage: https://github.com/agronholm/exceptiongroup/
+Rules-Requires-Root: no
 
-Package: template-repository
-Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}
-Description: <insert up to 60 chars description>
- <insert long description, indented with spaces>
+Package: python3-exceptiongroup
+Architecture: all
+Depends:
+ ${misc:Depends},
+ ${python3:Depends},
+Breaks:
+ python3-trio (<< 0.22),
+Description: Backport of PEP 654 (exception groups)
+ This is a backport of the BaseExceptionGroup and ExceptionGroup classes from
+ Python 3.11.
