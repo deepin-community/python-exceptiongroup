@@ -3,6 +3,42 @@ Version history
 
 This library adheres to `Semantic Versioning 2.0 <http://semver.org/>`_.
 
+**1.2.2**
+
+- Removed an ``assert`` in ``exceptiongroup._formatting`` that caused compatibility
+  issues with Sentry (`#123 <https://github.com/agronholm/exceptiongroup/issues/123>`_)
+
+**1.2.1**
+
+- Updated the copying of ``__notes__`` to match CPython behavior (PR by CF Bolz-Tereick)
+- Corrected the type annotation of the exception handler callback to accept a
+  ``BaseExceptionGroup`` instead of ``BaseException``
+- Fixed type errors on Python < 3.10 and the type annotation of ``suppress()``
+  (PR by John Litborn)
+
+**1.2.0**
+
+- Added special monkeypatching if `Apport <https://github.com/canonical/apport>`_ has
+  overridden ``sys.excepthook`` so it will format exception groups correctly
+  (PR by John Litborn)
+- Added a backport of ``contextlib.suppress()`` from Python 3.12.1 which also handles
+  suppressing exceptions inside exception groups
+- Fixed bare ``raise`` in a handler reraising the original naked exception rather than
+  an exception group which is what is raised when you do a ``raise`` in an ``except*``
+  handler
+
+**1.1.3**
+
+- ``catch()`` now raises a ``TypeError`` if passed an async exception handler instead of
+  just giving a ``RuntimeWarning`` about the coroutine never being awaited. (#66, PR by
+  John Litborn)
+- Fixed plain ``raise`` statement in an exception handler callback to work like a
+  ``raise`` in an ``except*`` block
+- Fixed new exception group not being chained to the original exception when raising an
+  exception group from exceptions raised in handler callbacks
+- Fixed type annotations of the ``derive()``, ``subgroup()`` and ``split()`` methods to
+  match the ones in typeshed
+
 **1.1.2**
 
 - Changed handling of exceptions in exception group handler callbacks to not wrap a

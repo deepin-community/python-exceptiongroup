@@ -12,7 +12,7 @@ Build-Depends:
  python3-all,
  python3-flit-scm,
  python3-pytest <!nocheck>,
-Standards-Version: 4.6.2
+Standards-Version: 4.7.0
 Testsuite: autopkgtest-pkg-pybuild
 Vcs-Git: https://salsa.debian.org/python-team/packages/python-exceptiongroup.git
 Vcs-Browser: https://salsa.debian.org/python-team/packages/python-exceptiongroup
