@@ -26,6 +26,8 @@ It contains the following:
   * ``traceback.format_exception_only()``
   * ``traceback.print_exception()``
   * ``traceback.print_exc()``
+* A backported version of ``contextlib.suppress()`` from Python 3.12.1 which also
+  handles suppressing exceptions inside exception groups
 
 If this package is imported on Python 3.11 or later, the built-in implementations of the
 exception group classes are used instead, ``TracebackException`` is not monkey patched
@@ -52,7 +54,7 @@ containing more matching exceptions.
 
 Thus, the following Python 3.11+ code:
 
-.. code-block:: python3
+.. code-block:: python
 
     try:
         ...
@@ -64,15 +66,15 @@ Thus, the following Python 3.11+ code:
 
 would be written with this backport like this:
 
-.. code-block:: python3
+.. code-block:: python
 
-    from exceptiongroup import ExceptionGroup, catch
+    from exceptiongroup import BaseExceptionGroup, catch
 
-    def value_key_err_handler(excgroup: ExceptionGroup) -> None:
+    def value_key_err_handler(excgroup: BaseExceptionGroup) -> None:
         for exc in excgroup.exceptions:
             print('Caught exception:', type(exc))
 
-    def runtime_err_handler(exc: ExceptionGroup) -> None:
+    def runtime_err_handler(exc: BaseExceptionGroup) -> None:
         print('Caught runtime error')
 
     with catch({
@@ -83,6 +85,20 @@ would be written with this backport like this:
 
 **NOTE**: Just like with ``except*``, you cannot handle ``BaseExceptionGroup`` or
 ``ExceptionGroup`` with ``catch()``.
+
+Suppressing exceptions
+======================
+
+This library contains a backport of the ``contextlib.suppress()`` context manager from
+Python 3.12.1. It allows you to selectively ignore certain exceptions, even when they're
+inside exception groups:
+
+.. code-block:: python
+
+    from exceptiongroup import suppress
+
+    with suppress(RuntimeError):
+        raise ExceptionGroup("", [RuntimeError("boo")])
 
 Notes on monkey patching
 ========================

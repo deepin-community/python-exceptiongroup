@@ -148,9 +148,41 @@ def test_catch_handler_raises():
     def handler(exc):
         raise RuntimeError("new")
 
-    with pytest.raises(RuntimeError, match="new"):
+    with pytest.raises(RuntimeError, match="new") as exc:
         with catch({(ValueError, ValueError): handler}):
-            raise ExceptionGroup("booboo", [ValueError("bar")])
+            excgrp = ExceptionGroup("booboo", [ValueError("bar")])
+            raise excgrp
+
+    context = exc.value.__context__
+    assert isinstance(context, ExceptionGroup)
+    assert str(context) == "booboo (1 sub-exception)"
+    assert len(context.exceptions) == 1
+    assert isinstance(context.exceptions[0], ValueError)
+    assert exc.value.__cause__ is None
+
+
+def test_bare_raise_in_handler():
+    """Test that a bare "raise"  "middle" ecxeption group gets discarded."""
+
+    def handler(exc):
+        raise
+
+    with pytest.raises(ExceptionGroup) as excgrp:
+        with catch({(ValueError,): handler, (RuntimeError,): lambda eg: None}):
+            try:
+                first_exc = RuntimeError("first")
+                raise first_exc
+            except RuntimeError as exc:
+                middle_exc = ExceptionGroup(
+                    "bad", [ValueError(), ValueError(), TypeError()]
+                )
+                raise middle_exc from exc
+
+    assert len(excgrp.value.exceptions) == 2
+    assert all(isinstance(exc, ValueError) for exc in excgrp.value.exceptions)
+    assert excgrp.value is not middle_exc
+    assert excgrp.value.__cause__ is first_exc
+    assert excgrp.value.__context__ is first_exc
 
 
 def test_catch_subclass():
@@ -162,3 +194,29 @@ def test_catch_subclass():
     assert isinstance(lookup_errors[0], ExceptionGroup)
     exceptions = lookup_errors[0].exceptions
     assert isinstance(exceptions[0], KeyError)
+
+
+def test_async_handler(request):
+    async def handler(eg):
+        pass
+
+    def delegate(eg):
+        coro = handler(eg)
+        request.addfinalizer(coro.close)
+        return coro
+
+    with pytest.raises(TypeError, match="Exception handler must be a sync function."):
+        with catch({TypeError: delegate}):
+            raise ExceptionGroup("message", [TypeError("uh-oh")])
+
+
+def test_bare_reraise_from_naked_exception():
+    def handler(eg):
+        raise
+
+    with pytest.raises(ExceptionGroup) as excgrp, catch({Exception: handler}):
+        raise KeyError("foo")
+
+    assert len(excgrp.value.exceptions) == 1
+    assert isinstance(excgrp.value.exceptions[0], KeyError)
+    assert str(excgrp.value.exceptions[0]) == "'foo'"
